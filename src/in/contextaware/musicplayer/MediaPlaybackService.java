@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.music;
+package in.contextaware.musicplayer;
 
 import android.app.Notification;
 import android.app.PendingIntent;
@@ -59,6 +59,9 @@ import java.io.PrintWriter;
 import java.lang.ref.WeakReference;
 import java.util.Random;
 import java.util.Vector;
+
+import in.contextaware.musicplayer.IMediaPlaybackService;
+
 
 /**
  * Provides "background" audio playback capabilities, allowing the
@@ -1921,7 +1924,7 @@ public class MediaPlaybackService extends Service {
             mNextMediaPlayer.setWakeMode(MediaPlaybackService.this, PowerManager.PARTIAL_WAKE_LOCK);
             mNextMediaPlayer.setAudioSessionId(getAudioSessionId());
             if (setDataSourceImpl(mNextMediaPlayer, path)) {
-                mCurrentMediaPlayer.setNextMediaPlayer(mNextMediaPlayer);
+                mCurrentMediaPlayer.setNextMediaPlayer(mNextMediaPlayer); 
             } else {
                 // failed to open next, we'll transition the old fashioned way,
                 // which will skip over the faulty file

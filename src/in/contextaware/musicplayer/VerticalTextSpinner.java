@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-package com.android.music;
+package in.contextaware.musicplayer;
+
 
 import android.content.Context;
 import android.graphics.Canvas;

@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.music;
-
-import com.android.music.MusicUtils.ServiceToken;
+package in.contextaware.musicplayer;
 
 import android.app.ListActivity;
 import android.content.AsyncQueryHandler;
@@ -53,6 +51,8 @@ import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AdapterView.AdapterContextMenuInfo;
+
+import in.contextaware.musicplayer.MusicUtils.ServiceToken;
 
 import java.text.Collator;
 import java.util.ArrayList;

@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 
-package com.android.music;
+package in.contextaware.musicplayer;
 
-import com.android.music.MusicUtils.ServiceToken;
+import in.contextaware.musicplayer.MusicUtils.ServiceToken;
+
+import in.contextaware.musicplayer.IMediaPlaybackService;
+
 
 import android.app.Activity;
 import android.content.ComponentName;

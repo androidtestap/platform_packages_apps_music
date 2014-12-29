@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.music;
-
-import com.android.music.MusicUtils.ServiceToken;
-import com.android.music.QueryBrowserActivity.QueryListAdapter.QueryHandler;
+package in.contextaware.musicplayer;
 
 import android.app.ExpandableListActivity;
 import android.app.SearchManager;
@@ -60,6 +57,9 @@ import android.widget.SectionIndexer;
 import android.widget.SimpleCursorTreeAdapter;
 import android.widget.TextView;
 import android.widget.ExpandableListView.ExpandableListContextMenuInfo;
+
+import in.contextaware.musicplayer.MusicUtils.ServiceToken;
+import in.contextaware.musicplayer.QueryBrowserActivity.QueryListAdapter.QueryHandler;
 
 import java.text.Collator;
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.music;
+package in.contextaware.musicplayer;
 
 import android.app.Activity;
 import android.content.ComponentName;
@@ -68,6 +68,9 @@ import java.util.Arrays;
 import java.util.Formatter;
 import java.util.HashMap;
 import java.util.Locale;
+
+import in.contextaware.musicplayer.IMediaPlaybackService;
+
 
 public class MusicUtils {
 

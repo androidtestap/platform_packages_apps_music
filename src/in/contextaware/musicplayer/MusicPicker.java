@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.music;
+package in.contextaware.musicplayer;
 
 import android.app.ListActivity;
 import android.content.AsyncQueryHandler;

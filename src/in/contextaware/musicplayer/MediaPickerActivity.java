@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.music;
-
-import com.android.music.MusicUtils.ServiceToken;
+package in.contextaware.musicplayer;
 
 import android.app.ListActivity;
 import android.content.Context;
@@ -33,6 +31,8 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
+
+import in.contextaware.musicplayer.MusicUtils.ServiceToken;
 
 import java.util.ArrayList;
 

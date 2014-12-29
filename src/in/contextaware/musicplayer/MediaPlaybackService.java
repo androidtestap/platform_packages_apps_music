@@ -33,6 +33,9 @@ import android.content.SharedPreferences.Editor;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteException;
 import android.graphics.Bitmap;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
 import android.media.audiofx.AudioEffect;
 import android.media.AudioManager;
 import android.media.AudioManager.OnAudioFocusChangeListener;
@@ -59,6 +62,14 @@ import java.io.PrintWriter;
 import java.lang.ref.WeakReference;
 import java.util.Random;
 import java.util.Vector;
+
+import com.contextawareframework.contextawarefunctions.ContextAwareFunction;
+import com.contextawareframework.controller.SensorController;
+import com.contextawareframework.dataanalysis.ProximityDataAnalysis;
+import com.contextawareframework.exceptions.AccelerometerSensorException;
+import com.contextawareframework.exceptions.ProximitySensorException;
+import com.contextawareframework.exceptions.SensorException;
+import com.contextawareframework.globalvariable.CAFConfig;
 
 import in.contextaware.musicplayer.IMediaPlaybackService;
 
@@ -164,7 +175,14 @@ public class MediaPlaybackService extends Service {
     private static final int IDLE_DELAY = 60000;
 
     private RemoteControlClient mRemoteControlClient;
-
+    
+    // Added by Prasenjit
+    public static boolean selectedAccel = false;
+	public static boolean selectedProximity = false;
+	private SensorEventListener accelSensorListener, proximitySensorListener;
+	private SensorController controller;
+	private ContextAwareFunction caf;
+	
     private Handler mMediaplayerHandler = new Handler() {
         float mCurrentVolume = 1.0f;
         @Override
@@ -367,6 +385,103 @@ public class MediaPlaybackService extends Service {
         // system will relaunch it. Make sure it gets stopped again in that case.
         Message msg = mDelayedStopHandler.obtainMessage();
         mDelayedStopHandler.sendMessageDelayed(msg, IDLE_DELAY);
+        
+        // Added by Prasenjit
+        accelSensorListener = new SensorEventListener() {
+
+    		@Override
+    		public void onSensorChanged(SensorEvent event) {
+    			// TODO Auto-generated method stub
+    		   caf = new ContextAwareFunction(getApplicationContext());
+    			if(caf.shakeLeft(event.values[0]))
+    			{
+    				try {
+    					prev();
+    					//setNextTrack();
+    					
+    				} catch (Exception e) {
+    					// TODO Auto-generated catch block
+    					e.printStackTrace();
+    				}
+    			}
+    			if(caf.shakeRight(event.values[0]))
+    			{
+    				try {
+    					//start();
+    					gotoNext(true);
+    				} catch (Exception e) {
+    					// TODO Auto-generated catch block
+    					e.printStackTrace();
+    				}
+    			}
+    			if(caf.shakeBack(event.values[1]))
+    			{
+    				try {
+    					pause();
+    				} catch (Exception e) {
+    					// TODO Auto-generated catch block
+    					e.printStackTrace();
+    				}
+    			}
+    			if(caf.shakeFront(event.values[1]))
+    			{
+    				try {
+    					play();
+    				} catch (Exception e) {
+    					// TODO Auto-generated catch block
+    					e.printStackTrace();
+    				}
+    			}
+    			if(caf.shakeUp(event.values[2]))
+    			{
+    				try {
+    					caf.volumeIncrease();
+    				} catch (Exception e) {
+    					// TODO Auto-generated catch block
+    					e.printStackTrace();
+    				}
+    			}
+    			if(caf.shakeDown(event.values[2]))
+    			{
+    				try {
+    					caf.volumeDecrease();
+    				} catch (Exception e) {
+    					// TODO Auto-generated catch block
+    					e.printStackTrace();
+    				}
+    			}
+    			
+    		}
+
+    		@Override
+    		public void onAccuracyChanged(Sensor sensor, int accuracy) {
+    			// TODO Auto-generated method stub
+    			//Log.d("TAG","Accuracy = " +accuracy);
+    		}
+    	};
+    	
+    	
+    	
+    	 proximitySensorListener = new SensorEventListener() {
+    		
+    		@Override
+    		public void onSensorChanged(SensorEvent event) {
+    			// TODO Auto-generated method stub
+    			ProximityDataAnalysis pDataAnalysis = new ProximityDataAnalysis(getApplicationContext());
+    			int status[] = pDataAnalysis.nearFarStatus(event.values[0]);
+    			
+    			if(status[0]==0)
+    			{
+    				gotoNext(true);
+    			}
+    		}
+    		
+    		@Override
+    		public void onAccuracyChanged(Sensor sensor, int accuracy) {
+    			// TODO Auto-generated method stub
+    			
+    		}
+    	};
     }
 
     @Override
@@ -374,6 +489,15 @@ public class MediaPlaybackService extends Service {
         // Check that we're not being destroyed while something is still playing.
         if (isPlaying()) {
             Log.e(LOGTAG, "Service being destroyed while still playing.");
+            try {
+				controller.unregisterAccelerometerService(accelSensorListener);
+				controller.unregisterProximityService(proximitySensorListener);
+			}
+            catch (SensorException e) {
+				
+				e.printStackTrace();
+			}
+
         }
         // release all MediaPlayer resources, including the native player and wakelocks
         Intent i = new Intent(AudioEffect.ACTION_CLOSE_AUDIO_EFFECT_CONTROL_SESSION);
@@ -649,7 +773,78 @@ public class MediaPlaybackService extends Service {
             String action = intent.getAction();
             String cmd = intent.getStringExtra("command");
             MusicUtils.debugLog("onStartCommand " + action + " / " + cmd);
-
+            
+            // Added by Prasenjit
+            controller = SensorController.getInstance(getApplicationContext());
+            if(selectedAccel)
+        	{
+        		//Log.d("Service","Value = " + MediaPlaybackActivity.selected);
+        		
+        	    try 
+        	    { 
+        	    	CAFConfig.setEnableDebugging(false);
+        	    	CAFConfig.setSensorAccelerometer(true);
+        			controller.registerAccelerometerService(accelSensorListener, SensorController.UI);
+        		//	  Log.d("TAG", "Inside Service, after registering listener");
+        			 
+        		}
+        	    catch (AccelerometerSensorException e) 
+        		{
+        			// TODO Auto-generated catch block
+        			e.printStackTrace();
+        		}
+            }
+            else
+            {
+            	try 
+            	{
+            		CAFConfig.setEnableDebugging(false);
+        	    	CAFConfig.setSensorAccelerometer(true);
+            		//controller = SensorController1.getInstance(getApplicationContext());
+        	    	//controller.registerAccelerometerService(accelSensorListener, SensorController.UI);
+            		if(accelSensorListener!=null)
+            			controller.unregisterAccelerometerService(accelSensorListener);
+				} 
+            	catch (AccelerometerSensorException e)
+				{
+					
+					e.printStackTrace();
+				}
+            }
+            
+            // For Proximity Sensor 
+            if(selectedProximity)
+        	{     		
+        	   	try
+        	   	{
+        	    	CAFConfig.setEnableDebugging(false);
+        	    	CAFConfig.setSensorProximity(true);
+        			controller.registerProximityService(proximitySensorListener, SensorController.UI);
+				}
+            	catch (ProximitySensorException e) 
+            	{						
+					e.printStackTrace();
+				}
+        	}
+            else
+            {
+            	try 
+            	{
+            		CAFConfig.setEnableDebugging(false);
+        	    	//CAFConfig.setSensorProximity(true);
+        	    	//controller.registerProximityService(proximitySensorListener, SensorController.UI);
+            		if(accelSensorListener!=null)
+            		{
+            			controller.unregisterProximityService(proximitySensorListener);
+            			//Log.d("TAG", "Inside Service, after un-registering listener");
+            		}
+				} catch (ProximitySensorException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+            }
+            
+            
             if (CMDNEXT.equals(cmd) || NEXT_ACTION.equals(action)) {
                 gotoNext(true);
             } else if (CMDPREVIOUS.equals(cmd) || PREVIOUS_ACTION.equals(action)) {

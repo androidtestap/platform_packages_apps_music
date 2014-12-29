@@ -16,6 +16,8 @@
 
 package in.contextaware.musicplayer;
 
+import com.contextawareframework.globalvariable.CAFConfig;
+
 import in.contextaware.musicplayer.MusicUtils.ServiceToken;
 
 import in.contextaware.musicplayer.IMediaPlaybackService;
@@ -52,6 +54,8 @@ import android.provider.MediaStore;
 import android.text.Layout;
 import android.text.TextUtils.TruncateAt;
 import android.util.Log;
+import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -90,18 +94,108 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
     private Toast mToast;
     private int mTouchSlop;
     private ServiceToken mToken;
-
+    
+    // Added by Prasenjit
+    private Intent intent = null;
+    private static boolean accel = false;
+	private static boolean proximity = false;
     public MediaPlaybackActivity()
     {
     }
-
+    
+    @Override   
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo)  
+    {  
+            super.onCreateContextMenu(menu, v, menuInfo);  
+            menu.setHeaderTitle("Sensors");
+            if(!accel)
+            	menu.add(0, v.getId(), 0, "Accelerometer On");//groupId, itemId, order, title
+            else
+            	menu.add(0, v.getId(), 0, "Accelerometer Off");
+            if(!proximity)
+            	menu.add(0, v.getId(), 0, "Proximity On");
+            else
+            	menu.add(0, v.getId(), 0, "Proximity Off");
+    }
+    @Override    
+    public boolean onContextItemSelected(MenuItem item){  
+	            if(item.getTitle()=="Accelerometer On" || item.getTitle()=="Accelerometer Off")
+	            {
+	            	accel= !accel;
+	            	try
+	            	{
+	            		// Enable Accelerometer Listener
+	            		intent = new Intent(getApplicationContext(),MediaPlaybackService.class);
+	            		if(MediaPlaybackService.selectedAccel == true)
+	            		{
+	            			Log.d("Test","Test if");
+        	    			MediaPlaybackService.selectedAccel = false;
+        	    			startService(intent);
+	            		}
+	            		else
+	            		{
+	            			Log.d("Test","Test else");
+	            			MediaPlaybackService.selectedAccel = true;
+	            			startService(intent);
+	            		}
+	            	}
+	            	catch(Exception e)
+	            	{
+	            		e.printStackTrace();
+	            	}
+                         
+	            }    
+	            else if(item.getTitle()=="Proximity On" || item.getTitle()=="Proximity Off")
+	            {  
+                   	proximity= !proximity;
+            	   	try
+            	   	{
+            	   		// Enable Proximity Listener
+            	   		intent = new Intent(getApplicationContext(),MediaPlaybackService.class);
+            	   		if(MediaPlaybackService.selectedProximity == true)
+            	   		{
+            	   			MediaPlaybackService.selectedProximity = false;
+	    				    // Call the service again to disable the sensor as it will call the onStartCommand
+            	   			startService(intent);
+	    			    }   		
+        	    	    else
+        	    	    {
+        	    			MediaPlaybackService.selectedProximity = true;
+        	    			startService(intent);
+        	    	    }
+            	   	}
+            	   	catch(Exception e)
+            	   	{
+            	   		e.printStackTrace();
+            	   	}
+	            }
+                else
+                {
+                	return false;  
+            }    
+          return true;    
+      }
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle icicle)
     {
         super.onCreate(icicle);
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
-
+        // Added By Prasenjit
+        CAFConfig.setEnableDebugging(false);
+        // To check if hardware menu key is present or not
+     		if(ViewConfiguration.get(this).hasPermanentMenuKey())
+     		{
+     			requestWindowFeature(Window.FEATURE_NO_TITLE);
+     			super.setTheme(android.R.style.Theme_Black_NoTitleBar);
+       		}
+     		else
+     		{     			
+     			super.setTheme(android.R.style.Theme_Holo);
+     		}
+     		
+     		
+     		
         mAlbumArtWorker = new Worker("album art worker");
         mAlbumArtHandler = new AlbumArtHandler(mAlbumArtWorker.getLooper());
 
@@ -116,6 +210,8 @@ public class MediaPlaybackActivity extends Activity implements MusicUtils.Defs,
         mAlbumName = (TextView) findViewById(R.id.albumname);
         mTrackName = (TextView) findViewById(R.id.trackname);
 
+        registerForContextMenu(mAlbum);
+        
         View v = (View)mArtistName.getParent(); 
         v.setOnTouchListener(this);
         v.setOnLongClickListener(this);
